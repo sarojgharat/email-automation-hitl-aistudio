@@ -19,13 +19,13 @@ import { getAuth } from "firebase/auth";
 // 6. Copy the `firebaseConfig` object and paste it over the object below.
 // =================================================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAZIHFtG3FjsHXNlIPcI2QLS4_2KIOcJsM",
-  authDomain: "email-automation-hitl.firebaseapp.com",
-  projectId: "email-automation-hitl",
-  storageBucket: "email-automation-hitl.firebasestorage.app",
-  messagingSenderId: "1083462729787",
-  appId: "1:1083462729787:web:126426ee7f9f132ad79c1e",
-  measurementId: "G-177X3CN26N"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: ""
 };
 
 // Check if the placeholder API key is still in use. This is used in App.tsx
