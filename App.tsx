@@ -48,7 +48,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchEmails = async () => {
       try {
-        const response = await fetch('/api/emails');
+        const response = await fetch('/api/emails/');
         const data = await response.json();
         setEmails(data);
       } catch (error) {

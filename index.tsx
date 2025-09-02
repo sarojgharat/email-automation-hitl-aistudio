@@ -5,10 +5,13 @@ import App from './App';
 import { worker } from './src/mocks/browser';
 
 async function enableMocking() {
-  if (process.env.NODE_ENV !== 'development') {
-    return;
+  // To enable mocking, set VITE_ENABLE_MOCKING to "true" in your .env file
+  console.log('VITE_ENABLE_MOCKING:', import.meta.env.VITE_ENABLE_MOCKING);
+  if (import.meta.env.VITE_ENABLE_MOCKING !== 'true') {
+    return Promise.resolve();
   }
  
+  console.log('Mock Service Worker is enabled.');
   return worker.start();
 }
 
