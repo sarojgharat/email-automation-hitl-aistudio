@@ -20,6 +20,7 @@ const LoginPage: React.FC = () => {
 
     try {
       if (isSignUp) {
+        console.log("Inside=======")
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);

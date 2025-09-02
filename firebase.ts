@@ -1,5 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -19,22 +20,25 @@ import { getAuth } from "firebase/auth";
 // 6. Copy the `firebaseConfig` object and paste it over the object below.
 // =================================================================================
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: ""
+  apiKey: "AIzaSyC3HYK9DmD0-nCYIIH24Q_comfBxK5DIl4",
+  authDomain: "email-automation-50afe.firebaseapp.com",
+  projectId: "email-automation-50afe",
+  storageBucket: "email-automation-50afe.firebasestorage.app",
+  messagingSenderId: "425724589469",
+  appId: "1:425724589469:web:067a0e6ab3dc6d54eeeb74",
+  measurementId: "G-HW5Q7P00CF"
 };
 
 // Check if the placeholder API key is still in use. This is used in App.tsx
 // to show a helpful error message if the config is not filled out.
-export const isFirebaseConfigured = firebaseConfig.apiKey !== "dummy";
+export const isFirebaseConfigured = firebaseConfig.apiKey == "AIzaSyC3HYK9DmD0-nCYIIH24Q_comfBxK5DIl4";
 
+console.log(firebaseConfig.apiKey)
+console.log(isFirebaseConfigured)
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

@@ -57,7 +57,7 @@ Follow these instructions to set up and run the project locally.
 
 ### Prerequisites
 
-You need a modern web browser. The project uses an `importmap` in `index.html` to load dependencies from a CDN, so no local `npm install` is required for the libraries.
+You need to have Node.js and npm installed on your machine.
 
 ### Setup Instructions
 
@@ -85,19 +85,23 @@ This application requires a Firebase project to handle user authentication.
 
 > **⚠️ Important:** The application will not work without a valid Firebase configuration. You will see an error screen if the placeholder credentials are still present.
 
-**Step 3: Run the Application**
+**Step 3: Install Dependencies**
 
-Since this is a static project without a build step, you can run it using any simple local web server.
+Install the project dependencies using npm.
 
-1.  If you don't have a local server, you can install `serve` via npm:
-    ```bash
-    npm install -g serve
-    ```
-2.  From the root directory of the project, run the server:
-    ```bash
-    serve .
-    ```
-3.  The server will start, and you can access the application by opening the provided URL (usually `http://localhost:3000`) in your web browser.
+```bash
+npm install
+```
+
+**Step 4: Run the Application**
+
+Run the development server.
+
+```bash
+npm run dev
+```
+
+The server will start, and you can access the application by opening the provided URL (usually `http://localhost:5173`) in your web browser.
 
 ## 📖 How to Use the Application
 
