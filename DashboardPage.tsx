@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Email, Classification } from './data';
 
@@ -7,16 +6,22 @@ interface DashboardPageProps {
 }
 
 const classificationColors: Record<Classification, string> = {
-    'Booking Creation': 'bg-green-500',
-    'Booking Amendment': 'bg-yellow-500',
-    'Booking Cancellation': 'bg-red-500',
-    'Not related': 'bg-gray-500',
-    'Unclassified': 'bg-indigo-500',
+    'booking request': 'bg-green-500',
+    'booking amendment': 'bg-yellow-500',
+    'booking cancellation': 'bg-red-500',
+    'unclassified': 'bg-indigo-500',
+    'equipment release request': 'bg-purple-500',
+    'special equipment request': 'bg-pink-500',
+    'equipment substitution request': 'bg-teal-500',
+    'empty container pickup request': 'bg-orange-500',
+    'equipment interchange request': 'bg-cyan-500',
+    'manual move request': 'bg-lime-500', // Added new classification color
+    'other': 'bg-gray-500'
 };
 
 // Type guard to narrow the type of classified emails
 function isClassifiedEmail(email: Email): email is Email & { classification: Exclude<Classification, 'Unclassified'> } {
-    return email.classification !== 'Unclassified';
+    return email.classification !== 'unclassified';
 }
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
@@ -86,7 +91,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
         // No type assertion needed here thanks to the type guard
         acc[email.classification] = (acc[email.classification] || 0) + 1;
         return acc;
-    }, {} as Record<Exclude<Classification, 'Unclassified'>, number>);
+    }, {} as Record<Exclude<Classification, 'unclassified'>, number>);
     
     const distributionValues = Object.values(classificationDistribution);
     const maxDistributionCount = Math.max(...distributionValues, 0);
@@ -94,7 +99,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
     const dailyTrend = emails.reduce((acc, email) => {
         const date = email.date;
         if (!acc[date]) {
-            acc[date] = { 'Booking Creation': 0, 'Booking Amendment': 0, 'Booking Cancellation': 0, 'Not related': 0, 'Unclassified': 0 };
+            // Initialize all classification types for the date
+            acc[date] = Object.keys(classificationColors).reduce((classAcc, classificationKey) => {
+                classAcc[classificationKey as Classification] = 0;
+                return classAcc;
+            }, {} as Record<Classification, number>);
         }
         acc[date][email.classification] = (acc[date][email.classification] || 0) + 1;
         return acc;
@@ -109,11 +118,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
     
     // Data Extraction Stats
     const relevantEmailsForExtraction = emails.filter(e =>
-        ['Booking Creation', 'Booking Amendment', 'Booking Cancellation'].includes(e.classification)
+        ['booking request', 'booking amendment', 'booking cancellation', 'equipment release request', 'special equipment request',
+  'equipment substitution request', 'empty container pickup request', 'equipment interchange request', 'manual move request'].includes(e.classification) // Added new classification
     );
+
     const relevantCount = relevantEmailsForExtraction.length;
     const extractedCount = relevantEmailsForExtraction.filter(e => !!e.extractedData).length;
-    const pendingCount = relevantCount - extractedCount;
+    const pendingCount = relevantEmailsForExtraction.filter(e => e.extractedData === false).length;
     const extractionPercentage = relevantCount > 0 ? (extractedCount / relevantCount) * 100 : 0;
 
 
@@ -143,7 +154,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
                 <Card className="lg:col-span-2">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Distribution of Classified Emails</h2>
                     <div className="space-y-4">
-                        {(Object.entries(classificationDistribution) as [Exclude<Classification, 'Unclassified'>, number][]).map(([classification, count]) => (
+                        {(Object.entries(classificationDistribution) as [Exclude<Classification, 'unclassified'>, number][]).map(([classification, count]) => (
                             <div key={classification}>
                                 <div className="flex justify-between items-center mb-1 text-sm">
                                     <span className="font-medium text-gray-700 dark:text-gray-300">{classification}</span>
@@ -162,13 +173,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
             </section>
             
             {/* Data Extraction Status */}
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-1 flex flex-col items-center justify-center">
+            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="flex flex-col items-center justify-center">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Data Extraction Status</h2>
                     <DonutChart percentage={extractionPercentage} colorClass="text-teal-500" />
                     <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{extractedCount} of {relevantCount} relevant emails extracted</p>
                 </Card>
-                <Card className="lg:col-span-2">
+                <Card className="">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Extraction Breakdown</h2>
                     <div className="space-y-4">
                         <div>
@@ -208,13 +219,18 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
                             const dailyData = dailyTrend[date];
                             const dailyTotal = dailyTotals[i];
                             return (
-                                <div key={date} className="flex flex-col items-center flex-1" title={`Total: ${dailyTotal}`}>
+                                <div 
+                                    key={date} 
+                                    className="flex flex-col items-center flex-1 justify-end"
+                                    style={{ height: `${maxDailyTotal > 0 ? (dailyTotal / maxDailyTotal) * 100 : 0}%` }} // Set the height of the whole bar relative to maxDailyTotal
+                                    title={`Total: ${dailyTotal}`}
+                                >
                                     <div className="w-full h-full flex flex-col-reverse items-center rounded-t-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
                                         {(Object.entries(dailyData) as [Classification, number][]).map(([classification, count]) => (
                                             count > 0 && <div
                                                 key={classification}
-                                                className={classificationColors[classification]}
-                                                style={{ height: `${maxDailyTotal > 0 ? (count / maxDailyTotal) * 100 : 0}%`, transition: 'height 0.5s ease-in-out' }}
+                                                className={`${classificationColors[classification]} w-full`}
+                                                style={{ height: `${dailyTotal > 0 ? (count / dailyTotal) * 100 : 0}%`, transition: 'height 0.5s ease-in-out' }} // Set segment height relative to dailyTotal
                                                 title={`${classification}: ${count}`}
                                             ></div>
                                         ))}
@@ -225,7 +241,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
                         })}
                     </div>
                      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
-                        {(Object.entries(classificationColors) as [Classification, string][]).filter(([name]) => name !== 'Unclassified').map(([name, color]) => (
+                        {(Object.entries(classificationColors) as [Classification, string][]).map(([name, color]) => (
                             <div key={name} className="flex items-center text-xs">
                                 <span className={`w-3 h-3 rounded-sm mr-1.5 ${color}`}></span>
                                 <span className="text-gray-600 dark:text-gray-400">{name}</span>

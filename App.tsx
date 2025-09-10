@@ -9,7 +9,7 @@ import { Email, Classification, ExtractedData } from './data';
 type Page = 'dashboard' | 'inbox';
 type Theme = 'light' | 'dark';
 
-export type SortableKeys = keyof Pick<Email, 'from' | 'subject' | 'date' | 'classification'> | 'dataExtracted';
+export type SortableKeys = keyof Pick<Email, 'from' | 'subject' | 'date' | 'classification' | 'automationStatus'> | 'dataExtracted';
 
 export interface SortConfig {
   key: SortableKeys | null;
@@ -20,7 +20,8 @@ export interface FilterConfig {
   from: string;
   subject: string;
   classification: Classification | 'All';
-  dataExtracted: 'All' | 'Yes' | 'Pending' | 'N/A';
+  dataExtracted: 'All' | 'Yes' | 'Pending' | 'N/A' | null;
+  automationStatus: 'All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'PENDING';
 }
 
 const App: React.FC = () => {
@@ -43,6 +44,7 @@ const App: React.FC = () => {
     subject: '',
     classification: 'All',
     dataExtracted: 'All',
+    automationStatus: 'All',
   });
 
   useEffect(() => {
@@ -97,6 +99,8 @@ const App: React.FC = () => {
   };
 
   const handleClassifyEmail = (emailId: string, classification: Classification) => {
+    console.log(`Classifying email ${emailId} as ${classification}`);
+    
     setEmails(prevEmails =>
       prevEmails.map(email =>
         email.id === emailId
@@ -145,7 +149,8 @@ const App: React.FC = () => {
       const subjectMatch = email.subject.toLowerCase().includes(filters.subject.toLowerCase());
       const classificationMatch = filters.classification === 'All' || email.classification === filters.classification;
       const dataExtractedMatch = filters.dataExtracted === 'All' || getExtractionStatus(email) === filters.dataExtracted;
-      return fromMatch && subjectMatch && classificationMatch && dataExtractedMatch;
+      const automationStatusMatch = filters.automationStatus === 'All' || email.automationStatus === filters.automationStatus;
+      return fromMatch && subjectMatch && classificationMatch && dataExtractedMatch && automationStatusMatch;
     });
 
     if (sortConfig.key) {
@@ -157,9 +162,13 @@ const App: React.FC = () => {
           const statusOrder = { 'Yes': 2, 'Pending': 1, 'N/A': 0 };
           aValue = statusOrder[getExtractionStatus(a)];
           bValue = statusOrder[getExtractionStatus(b)];
+        } else if (sortConfig.key === 'automationStatus') {
+          const automationStatusOrder = { 'PROCESSED': 2, 'TRIGGERED': 1, 'FAILED': 0 };
+          aValue = automationStatusOrder[a.automationStatus as keyof typeof automationStatusOrder];
+          bValue = automationStatusOrder[b.automationStatus as keyof typeof automationStatusOrder];
         } else {
-          aValue = a[sortConfig.key as Exclude<SortableKeys, 'dataExtracted'>];
-          bValue = b[sortConfig.key as Exclude<SortableKeys, 'dataExtracted'>];
+          aValue = a[sortConfig.key as Exclude<SortableKeys, 'dataExtracted' | 'automationStatus'>];
+          bValue = b[sortConfig.key as Exclude<SortableKeys, 'dataExtracted' | 'automationStatus'>];
         }
 
         if (aValue < bValue) {

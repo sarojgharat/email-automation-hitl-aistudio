@@ -8,12 +8,25 @@ interface EmailDetailPageProps {
   onExtractData: (emailId: string, data: ExtractedData) => void;
 }
 
-const classificationOptions: Classification[] = [
-  'Booking Creation',
-  'Booking Amendment',
-  'Booking Cancellation',
-  'Not related',
-];
+const classificationOptionsMap: Record<Email['businessProcess'], Classification[]> = {
+  booking: [
+    'booking request',
+    'booking amendment',
+    'booking cancellation',
+    'other',
+  ],
+  equipment: [
+    'equipment release request',
+    'special equipment request',
+    'equipment substitution request',
+    'empty container pickup request',
+    'equipment interchange request',
+    'manual move request',
+    'other',
+  ],
+  other: ['other'],
+};
+
 
 const ClassificationButton: React.FC<{
   onClick: () => void;
@@ -67,6 +80,8 @@ const FormField: React.FC<{
 const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClassify, onExtractData }) => {
   const [isClassifying, setIsClassifying] = useState(email.classification === 'Unclassified');
   const [formData, setFormData] = useState<Partial<ExtractedData>>({});
+  const classificationOptions = classificationOptionsMap[email.businessProcess] || classificationOptionsMap.other;
+
 
   useEffect(() => {
     if (email.extractedData) {
@@ -74,14 +89,17 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
     } else {
         // Initialize form with empty strings based on classification
         switch (email.classification) {
-            case 'Booking Creation':
-                setFormData({ type: 'Booking Creation', origin: '', destination: '', fromDate: '', toDate: '', specialRequests: '' });
+            case 'booking request':
+                setFormData({ type: 'booking request', origin: '', destination: '', fromDate: '', toDate: '', specialRequests: '' });
                 break;
-            case 'Booking Amendment':
-                setFormData({ type: 'Booking Amendment', bookingNumber: '', updatedDetails: '' });
+            case 'booking amendment':
+                setFormData({ type: 'booking amendment', bookingNumber: '', updatedDetails: '' });
                 break;
-            case 'Booking Cancellation':
-                setFormData({ type: 'Booking Cancellation', bookingNumber: '', cancellationReason: '', dateOfChange: '' });
+            case 'booking cancellation':
+                setFormData({ type: 'booking cancellation', bookingNumber: '', cancellationReason: '', dateOfChange: '' });
+                break;
+            case 'manual move request':
+                setFormData({ type: 'manual move request', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
                 break;
             default:
                 setFormData({});
@@ -90,9 +108,35 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
   }, [email.classification, email.extractedData]);
 
 
-  const handleClassify = (classification: Classification) => {
-    onClassify(email.id, classification);
-    setIsClassifying(false);
+  const handleClassify = async (classification: Classification) => {
+    
+    const payload = {
+        business_process: email.businessProcess,
+        classification_type: classification,
+        extracted_data: formData, // Use the current form data
+    };
+
+    try {
+        const response = await fetch(`http://localhost:8002/api/emails/${email.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('API call successful:', result);
+        onClassify(email.id, classification);
+        setIsClassifying(false);
+    } catch (error) {
+        console.error('Error during reclassification API call:', error);
+        // Optionally, handle the error in the UI
+    }
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -100,18 +144,43 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveData = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (email.classification !== 'Unclassified' && email.classification !== 'Not related') {
-          const dataToSave = {
-              ...formData,
-              type: email.classification,
-          } as ExtractedData;
-          onExtractData(email.id, dataToSave);
+  const handleSaveData = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.classification !== 'unclassified' && email.classification !== 'other') {
+      const dataToSave = {
+        ...formData,
+        type: email.classification,
+      } as ExtractedData;
+
+      const payload = {
+        business_process: email.businessProcess,
+        extracted_data: dataToSave,
+      };
+
+      try {
+        const response = await fetch(`http://localhost:8002/api/emails/${email.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('API call successful:', result);
+        onExtractData(email.id, dataToSave);
+      } catch (error) {
+        console.error('Error during data save API call:', error);
+        // Optionally, handle the error in the UI
       }
+    }
   };
 
-  const showExtractionSection = email.classification !== 'Unclassified' && email.classification !== 'Not related';
+  const showExtractionSection = email.classification !== 'unclassified' && email.classification !== 'other' && !email.extractedData;
 
   return (
     <div className="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
@@ -183,14 +252,26 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
             )}
           </div>
 
-          {/* Data Extraction Section */}
+          {/* Extracted Data Display Section */}
+          {email.extractedData && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Extracted Data (JSON)</h2>
+              <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md overflow-x-auto">
+                <pre className="text-sm text-gray-800 dark:text-gray-200"> 
+                  <code>{JSON.stringify(email.extractedData, null, 2)}</code>
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* Data Extraction Form Section */}
           {showExtractionSection && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                  {email.extractedData ? 'Update Data' : 'Extract Data'}
+                  Extract Data
               </h2>
               <form onSubmit={handleSaveData} className="space-y-4">
-                  {email.classification === 'Booking Creation' && 'origin' in formData && (
+                  {email.classification === 'booking request' && 'origin' in formData && (
                       <>
                           <FormField name="origin" label="Origin" value={(formData as any).origin} onChange={handleInputChange} required />
                           <FormField name="destination" label="Destination" value={(formData as any).destination} onChange={handleInputChange} required />
@@ -199,17 +280,26 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
                           <FormField name="specialRequests" label="Special Requests" type="textarea" value={(formData as any).specialRequests} onChange={handleInputChange} />
                       </>
                   )}
-                  {email.classification === 'Booking Amendment' && 'bookingNumber' in formData && (
+                  {email.classification === 'booking amendment' && 'bookingNumber' in formData && (
                        <>
                           <FormField name="bookingNumber" label="Booking Number" value={(formData as any).bookingNumber} onChange={handleInputChange} required />
                           <FormField name="updatedDetails" label="Updated Details" type="textarea" value={(formData as any).updatedDetails} onChange={handleInputChange} required />
                        </>
                   )}
-                  {email.classification === 'Booking Cancellation' && 'bookingNumber' in formData && (
+                  {email.classification === 'booking cancellation' && 'bookingNumber' in formData && (
                       <>
                           <FormField name="bookingNumber" label="Booking Number" value={(formData as any).bookingNumber} onChange={handleInputChange} required />
                           <FormField name="cancellationReason" label="Cancellation Reason" type="textarea" value={(formData as any).cancellationReason} onChange={handleInputChange} />
                           <FormField name="dateOfChange" label="Date of Change" type="date" value={(formData as any).dateOfChange} onChange={handleInputChange} />
+                      </>
+                  )}
+                  {email.classification === 'manual move request' && 'moveType' in formData && (
+                      <>
+                          <FormField name="moveType" label="Move Type" value={(formData as any).moveType} onChange={handleInputChange} required />
+                          <FormField name="sourceLocation" label="Source Location" value={(formData as any).sourceLocation} onChange={handleInputChange} required />
+                          <FormField name="destinationLocation" label="Destination Location" value={(formData as any).destinationLocation} onChange={handleInputChange} required />
+                          <FormField name="moveDate" label="Move Date" type="date" value={(formData as any).moveDate} onChange={handleInputChange} required />
+                          <FormField name="itemDescription" label="Item Description" type="textarea" value={(formData as any).itemDescription} onChange={handleInputChange} />
                       </>
                   )}
                   <div className="flex justify-end">
@@ -217,7 +307,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
                           type="submit"
                           className="px-4 py-2 rounded-md text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200"
                       >
-                          {email.extractedData ? 'Update Data' : 'Save Data'}
+                          Save Data
                       </button>
                   </div>
               </form>

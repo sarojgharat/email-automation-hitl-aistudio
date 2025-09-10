@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
       server: {
         proxy: {
           '/api': {
-            target: 'http://localhost:8002',
+            target: 'http://localhost:8005',
             changeOrigin: true,
           },
         },
