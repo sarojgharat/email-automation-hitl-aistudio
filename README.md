@@ -1,5 +1,6 @@
 # Email Automation Solution - Human-in-the-Loop (HITL)
 
+
 This project is a web application designed to streamline and automate the process of email classification and data extraction, operating with a "Human-in-the-Loop" (HITL) approach. It provides a user-friendly interface for managing emails, classifying them into predefined categories, and extracting key information into a structured format.
 
 The application is built with modern web technologies, including React, TypeScript, and Tailwind CSS for a responsive and interactive user experience, with Firebase handling user authentication.
