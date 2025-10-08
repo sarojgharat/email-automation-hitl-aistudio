@@ -15,19 +15,24 @@ interface EmailListPageProps {
   onSort: (key: SortableKeys) => void;
   filters: FilterConfig;
   onFilterChange: (filterName: keyof FilterConfig, value: string) => void;
+  onRefresh: () => void; // Added onRefresh prop
 }
 
 const getClassificationStyles = (classification: Classification): string => {
   switch (classification) {
-    case 'Booking Creation':
+    case 'booking request':
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-    case 'Booking Amendment':
+    case 'booking amendment':
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-    case 'Booking Cancellation':
+    case 'booking cancellation':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-    case 'Not related':
+    case 'manual move request': // Added new classification style
+      return 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-300';
+    case 'dispute': // Added new classification style
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'; 
+    case 'other':
       return 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200';
-    case 'Unclassified':
+    case 'unclassified':
     default:
       return 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
   }
@@ -61,18 +66,21 @@ const SortableHeader: React.FC<{
 
 const classificationOptions: (Classification | 'All')[] = [
   'All',
-  'Booking Creation',
-  'Booking Amendment',
-  'Booking Cancellation',
-  'Not related',
-  'Unclassified',
+  'booking request',
+  'booking amendment',
+  'booking cancellation',
+  'manual move request', // Added new classification to options
+  'dispute',
+  'other',
+  'unclassified',
 ];
 
 const dataExtractedOptions: ('All' | 'Yes' | 'Pending' | 'N/A')[] = ['All', 'Yes', 'Pending', 'N/A'];
+const automationStatusOptions: ('All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'COMPLETED' | 'NOT_TRIGGERED')[] = ['All', 'TRIGGERED', 'PROCESSED', 'FAILED', 'COMPLETED', 'NOT_TRIGGERED'];
 
 
-const EmailListPage: React.FC<EmailListPageProps> = ({ 
-  emails, 
+const EmailListPage: React.FC<EmailListPageProps> = ({
+  emails,
   onSelectEmail,
   currentPage,
   totalPages,
@@ -84,9 +92,10 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
   onSort,
   filters,
   onFilterChange,
+  onRefresh, // Destructure onRefresh
 }) => {
   const renderExtractionStatus = (email: Email) => {
-    const isApplicable = ['Booking Creation', 'Booking Amendment', 'Booking Cancellation'].includes(email.classification);
+    const isApplicable = ['unclassified', 'booking request', 'booking amendment', 'booking cancellation', 'manual move request', 'dispute'].includes(email.classification); // Added new classification
 
     if (email.extractedData) {
         return (
@@ -101,7 +110,7 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
     if (isApplicable) {
         return (
             <div className="flex justify-center items-center" title="Data Not Extracted">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-label="Data not extracted">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-label="Data not extracted">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
@@ -114,14 +123,67 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
         </div>
     );
   };
+
+  const renderAutomationStatus = (status: string) => {
+    if (status === 'COMPLETED') {
+      return (
+        <div className="flex justify-center items-center" title="Completed">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      );
+    } else if (status === 'PROCESSED') {
+      return (
+        <div className="flex justify-center items-center" title="Processed">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      );
+    } else if (status === 'FAILED') {
+      return (
+        <div className="flex justify-center items-center" title="Failed">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      );
+    } else if (!status || status === 'NOT_TRIGGERED') {
+      return (
+        <div className="flex justify-center items-center" title="Not Triggered">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex justify-center items-center" title="Triggered">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      );
+    }
+  };
   
   return (
     <div className="w-full max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-500">
-          Inbox
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Showing {totalEmails} messages.</p>
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-500">
+            Inbox
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Showing {totalEmails} messages.</p>
+        </div>
+        <button
+          onClick={onRefresh}
+          className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+          aria-label="Refresh emails"
+        >
+          Refresh
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left table-fixed">
@@ -131,6 +193,7 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
             <col className="w-[15%]" />
             <col className="w-[20%]" />
             <col className="w-[10%]" />
+             <col className="w-[15%]" />
           </colgroup>
           <thead className="bg-gray-50 dark:bg-gray-900/50">
             <tr>
@@ -139,6 +202,7 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
               <SortableHeader label="Date" sortKey="date" sortConfig={sortConfig} onSort={onSort} />
               <SortableHeader label="Classification" sortKey="classification" sortConfig={sortConfig} onSort={onSort} />
               <SortableHeader label="Data Extracted" sortKey="dataExtracted" sortConfig={sortConfig} onSort={onSort} className="text-center" />
+               <SortableHeader label="Automation Status" sortKey="automationStatus" sortConfig={sortConfig} onSort={onSort} />
             </tr>
              <tr className="bg-gray-50 dark:bg-gray-900/50 border-t border-b border-gray-200 dark:border-gray-700">
               <td className="p-2">
@@ -184,6 +248,16 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
                   {dataExtractedOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </td>
+               <td className="p-2">
+                <select
+                  value={filters.automationStatus}
+                  onChange={(e) => onFilterChange('automationStatus', e.target.value)}
+                  className="w-full px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  aria-label="Filter by Automation Status"
+                >
+                  {automationStatusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </td>
             </tr>
           </thead>
           <tbody>
@@ -207,11 +281,14 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
                 <td className="p-4">
                     {renderExtractionStatus(email)}
                 </td>
+                 <td className="p-4">
+                    {renderAutomationStatus(email.automationStatus)}
+                </td>
               </tr>
             ))}
              {emails.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center p-8 text-gray-500 dark:text-gray-400">
+                <td colSpan={6} className="text-center p-8 text-gray-500 dark:text-gray-400">
                   No emails match your search criteria.
                 </td>
               </tr>

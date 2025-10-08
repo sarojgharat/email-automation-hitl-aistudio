@@ -1,15 +1,15 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import DashboardPage from './DashboardPage';
 import EmailListPage from './EmailListPage';
 import EmailDetailPage from './EmailDetailPage';
+import EmailActionsPage from './EmailActionsPage'; // Import the new page
 import { Email, Classification, ExtractedData } from './data';
 
-type Page = 'dashboard' | 'inbox';
+type Page = 'dashboard' | 'inbox' | 'emailActions'; // Added new page type
 type Theme = 'light' | 'dark';
 
-export type SortableKeys = keyof Pick<Email, 'from' | 'subject' | 'date' | 'classification'> | 'dataExtracted';
+export type SortableKeys = keyof Pick<Email, 'from' | 'subject' | 'date' | 'classification' | 'automationStatus'> | 'dataExtracted';
 
 export interface SortConfig {
   key: SortableKeys | null;
@@ -21,6 +21,7 @@ export interface FilterConfig {
   subject: string;
   classification: Classification | 'All';
   dataExtracted: 'All' | 'Yes' | 'Pending' | 'N/A';
+  automationStatus: 'All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED';
 }
 
 const App: React.FC = () => {
@@ -36,6 +37,7 @@ const App: React.FC = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [emailsPerPage, setEmailsPerPage] = useState(10);
+  const [totalEmails, setTotalEmails] = useState(0); 
   
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'descending' });
   const [filters, setFilters] = useState<FilterConfig>({
@@ -43,21 +45,26 @@ const App: React.FC = () => {
     subject: '',
     classification: 'All',
     dataExtracted: 'All',
+    automationStatus: 'All',
   });
 
+  const fetchEmails = useCallback(async () => {
+    console.log("Fetching emails..."); // Added console log
+    try {
+      const offset = (currentPage - 1) * emailsPerPage;
+      const limit = emailsPerPage;
+      const response = await fetch(`https://email-db-service-307509283037.us-central1.run.app/api/emails?limit=${limit}&offset=${offset}`);
+      const data = await response.json();
+      setEmails(data); 
+      setTotalEmails(data.length); 
+    } catch (error) {
+      console.error('Failed to fetch emails:', error);
+    }
+  }, [currentPage, emailsPerPage]);
+
   useEffect(() => {
-    const fetchEmails = async () => {
-      try {
-        const response = await fetch('/api/emails');
-        const data = await response.json();
-        setEmails(data);
-      } catch (error) {
-        console.error('Failed to fetch emails:', error);
-      }
-    };
-  
     fetchEmails();
-  }, []);
+  }, [fetchEmails]);
 
   // Keep selectedEmail in sync with the main emails list after local state updates
   useEffect(() => {
@@ -93,14 +100,16 @@ const App: React.FC = () => {
   const handleNavClick = (page: Page) => {
     setActivePage(page);
     setSelectedEmail(null);
-    setCurrentPage(1); // Reset page on navigation
+    setCurrentPage(1); 
   };
 
   const handleClassifyEmail = (emailId: string, classification: Classification) => {
+    console.log(`Classifying email ${emailId} as ${classification}`);
+    
     setEmails(prevEmails =>
       prevEmails.map(email =>
         email.id === emailId
-          ? { ...email, classification: classification, extractedData: undefined } // Reset extracted data on re-classification
+          ? { ...email, classification: classification, extractedData: undefined } 
           : email
       )
     );
@@ -116,7 +125,7 @@ const App: React.FC = () => {
 
   const handleEmailsPerPageChange = (newSize: number) => {
     setEmailsPerPage(newSize);
-    setCurrentPage(1); // Reset to the first page when page size changes
+    setCurrentPage(1); 
   };
 
   const handleSort = (key: SortableKeys) => {
@@ -129,7 +138,7 @@ const App: React.FC = () => {
 
   const handleFilterChange = (filterName: keyof FilterConfig, value: string) => {
     setFilters(prev => ({ ...prev, [filterName]: value }));
-    setCurrentPage(1); // Reset page when filters change
+    setCurrentPage(1); 
   };
   
   const processedEmails = useMemo(() => {
@@ -145,7 +154,8 @@ const App: React.FC = () => {
       const subjectMatch = email.subject.toLowerCase().includes(filters.subject.toLowerCase());
       const classificationMatch = filters.classification === 'All' || email.classification === filters.classification;
       const dataExtractedMatch = filters.dataExtracted === 'All' || getExtractionStatus(email) === filters.dataExtracted;
-      return fromMatch && subjectMatch && classificationMatch && dataExtractedMatch;
+      const automationStatusMatch = filters.automationStatus === 'All' || email.automationStatus === filters.automationStatus;
+      return fromMatch && subjectMatch && classificationMatch && dataExtractedMatch && automationStatusMatch;
     });
 
     if (sortConfig.key) {
@@ -157,9 +167,13 @@ const App: React.FC = () => {
           const statusOrder = { 'Yes': 2, 'Pending': 1, 'N/A': 0 };
           aValue = statusOrder[getExtractionStatus(a)];
           bValue = statusOrder[getExtractionStatus(b)];
+        } else if (sortConfig.key === 'automationStatus') {
+          const automationStatusOrder = { 'PROCESSED': 2, 'TRIGGERED': 1, 'FAILED': 0 };
+          aValue = automationStatusOrder[a.automationStatus as keyof typeof automationStatusOrder];
+          bValue = automationStatusOrder[b.automationStatus as keyof typeof automationStatusOrder];
         } else {
-          aValue = a[sortConfig.key as Exclude<SortableKeys, 'dataExtracted'>];
-          bValue = b[sortConfig.key as Exclude<SortableKeys, 'dataExtracted'>];
+          aValue = a[sortConfig.key as Exclude<SortableKeys, 'dataExtracted' | 'automationStatus'>];
+          bValue = b[sortConfig.key as Exclude<SortableKeys, 'dataExtracted' | 'automationStatus'>];
         }
 
         if (aValue < bValue) {
@@ -175,6 +189,10 @@ const App: React.FC = () => {
     return filteredEmails;
   }, [emails, sortConfig, filters]);
 
+  const handleActionComplete = () => {
+    fetchEmails(); // Re-fetch emails to update data on all pages
+  };
+
   const renderPage = () => {
     if (selectedEmail) {
       return (
@@ -183,38 +201,39 @@ const App: React.FC = () => {
           onBack={handleBackToInbox} 
           onClassify={handleClassifyEmail} 
           onExtractData={handleExtractData}
+          onRefresh={fetchEmails} // Pass fetchEmails to EmailDetailPage
         />
       );
     }
 
     switch (activePage) {
       case 'dashboard':
-        return <DashboardPage emails={emails} />;
+        return <DashboardPage emails={emails} onRefresh={fetchEmails} />;
       case 'inbox': {
-        const lastEmailIndex = currentPage * emailsPerPage;
-        const firstEmailIndex = lastEmailIndex - emailsPerPage;
-        const currentEmails = processedEmails.slice(firstEmailIndex, lastEmailIndex);
-        const totalPages = Math.ceil(processedEmails.length / emailsPerPage);
+        const totalPages = Math.ceil(totalEmails / emailsPerPage);
 
         return (
           <EmailListPage 
-            emails={currentEmails} 
+            emails={processedEmails} 
             onSelectEmail={handleSelectEmail}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalEmails={processedEmails.length}
+            totalEmails={totalEmails}
             emailsPerPage={emailsPerPage}
             onEmailsPerPageChange={handleEmailsPerPageChange}
             sortConfig={sortConfig}
             onSort={handleSort}
             filters={filters}
             onFilterChange={handleFilterChange}
+            onRefresh={fetchEmails} // Pass fetchEmails to EmailListPage
           />
         );
       }
+      case 'emailActions':
+        return <EmailActionsPage onActionComplete={handleActionComplete} />;
       default:
-        return <DashboardPage emails={emails} />;
+        return <DashboardPage emails={emails} onRefresh={fetchEmails} />;
     }
   };
 
@@ -224,7 +243,7 @@ const App: React.FC = () => {
       className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
         activePage === page
           ? 'bg-white text-blue-600 dark:bg-white dark:text-blue-900 shadow-md'
-          : 'text-blue-100 hover:bg-blue-500 dark:text-blue-200 dark:hover:bg-blue-800'
+          : 'text-blue-100 hover:bg-blue-500 dark:text-blue-800 dark:hover:bg-blue-800'
       }`}
       aria-current={activePage === page ? 'page' : undefined}
     >
@@ -251,6 +270,7 @@ const App: React.FC = () => {
             <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center space-x-2">
               <NavButton page="dashboard" label="Dashboard" />
               <NavButton page="inbox" label="Inbox" />
+              <NavButton page="emailActions" label="Email Actions" /> {/* New Nav Button */}
             </div>
 
             {/* Right side: Theme toggle */}
@@ -272,6 +292,7 @@ const App: React.FC = () => {
            <div className="md:hidden flex items-center justify-center space-x-2 pt-2 pb-3">
               <NavButton page="dashboard" label="Dashboard" />
               <NavButton page="inbox" label="Inbox" />
+              <NavButton page="emailActions" label="Email Actions" /> {/* New Nav Button */}
             </div>
         </nav>
       </header>
