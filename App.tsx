@@ -62,20 +62,6 @@ const App: React.FC = () => {
     }
   }, [currentPage, emailsPerPage]);
 
-  const fetchEmails = useCallback(async () => {
-    console.log("Fetching emails..."); // Added console log
-    try {
-      const offset = (currentPage - 1) * emailsPerPage;
-      const limit = emailsPerPage;
-      const response = await fetch(`https://email-db-service-307509283037.us-central1.run.app/api/emails?limit=${limit}&offset=${offset}`);
-      const data = await response.json();
-      setEmails(data); 
-      setTotalEmails(data.length); 
-    } catch (error) {
-      console.error('Failed to fetch emails:', error);
-    }
-  }, [currentPage, emailsPerPage]);
-
   useEffect(() => {
     fetchEmails();
   }, [fetchEmails]);
