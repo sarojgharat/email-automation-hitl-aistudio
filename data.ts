@@ -57,7 +57,7 @@ export interface Email {
   date: string;
   body: string;
   classification: Classification;
-  businessProcess: 'booking' | 'equipment' | 'other';
+  businessProcess: 'booking' | 'equipment' | 'invoicing'| 'other';
   extractedData?: ExtractedData;
   automationStatus: string;
   processingStatus: string;

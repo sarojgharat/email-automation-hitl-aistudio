@@ -109,6 +109,9 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
             case 'dispute':
                 setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
                 break;
+            case 'dispute':
+                setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
+                break;
             default:
                 setFormData({});
         }
@@ -267,6 +270,14 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Automation Status Section */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Automation Status</h2>
+            <p className="text-gray-700 dark:text-gray-300">
+              Status: <span className="font-bold px-2 py-1 bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 rounded-md text-sm">{email.automationStatus}</span>
+            </p>
           </div>
 
           {/* Automation Status Section */}
