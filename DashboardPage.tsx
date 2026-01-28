@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 import React from 'react';
+=======
+import React, { useState, useEffect, useMemo } from 'react';
+>>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 import { Email, Classification } from './data';
 
 interface DashboardPageProps {
   emails: Email[];
+  onRefresh: () => void; // Added onRefresh prop
 }
+
+type BusinessProcess = 'booking' | 'equipment' | 'invoicing';
 
 const classificationColors: Record<Classification, string> = {
     'booking request': 'bg-green-500',
@@ -25,7 +32,7 @@ function isClassifiedEmail(email: Email): email is Email & { classification: Exc
     return email.classification !== 'unclassified';
 }
 
-const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
+export const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
         {children}
     </div>
@@ -80,7 +87,7 @@ const DonutChart: React.FC<{ percentage: number; colorClass: string }> = ({ perc
     );
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ emails, onRefresh }) => {
     const totalEmails = emails.length;
     
     // Use type guard for safer type inference
@@ -128,14 +135,19 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
     const pendingCount = relevantEmailsForExtraction.filter(e => e.extractedData === false).length;
     const extractionPercentage = relevantCount > 0 ? (extractedCount / relevantCount) * 100 : 0;
 
-
     return (
         <div className="w-full max-w-7xl mx-auto space-y-6">
-            <header>
+            <header className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500 mb-1">
                     Dashboard
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400">An overview of your email classification status.</p>
+                <button
+                    onClick={onRefresh}
+                    className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+                    aria-label="Refresh data"
+                >
+                    Refresh
+                </button>
             </header>
             
             {/* Top Level Stats */}

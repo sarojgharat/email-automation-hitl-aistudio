@@ -15,6 +15,7 @@ interface EmailListPageProps {
   onSort: (key: SortableKeys) => void;
   filters: FilterConfig;
   onFilterChange: (filterName: keyof FilterConfig, value: string) => void;
+  onRefresh: () => void; // Added onRefresh prop
 }
 
 const getClassificationStyles = (classification: Classification): string => {
@@ -75,7 +76,11 @@ const classificationOptions: (Classification | 'All')[] = [
 ];
 
 const dataExtractedOptions: ('All' | 'Yes' | 'Pending' | 'N/A')[] = ['All', 'Yes', 'Pending', 'N/A'];
+<<<<<<< HEAD
 const automationStatusOptions: ('All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'NOT_TRIGGERED')[] = ['All', 'TRIGGERED', 'PROCESSED', 'FAILED', 'NOT_TRIGGERED'];
+=======
+const automationStatusOptions: ('All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'COMPLETED' | 'NOT_TRIGGERED')[] = ['All', 'TRIGGERED', 'PROCESSED', 'FAILED', 'COMPLETED', 'NOT_TRIGGERED'];
+>>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 
 
 const EmailListPage: React.FC<EmailListPageProps> = ({
@@ -91,6 +96,7 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
   onSort,
   filters,
   onFilterChange,
+  onRefresh, // Destructure onRefresh
 }) => {
   const renderExtractionStatus = (email: Email) => {
     const isApplicable = ['unclassified', 'booking request', 'booking amendment', 'booking cancellation', 'manual move request', 'dispute'].includes(email.classification); // Added new classification
@@ -123,7 +129,19 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
   };
 
   const renderAutomationStatus = (status: string) => {
+<<<<<<< HEAD
     if (status === 'PROCESSED') {
+=======
+    if (status === 'COMPLETED') {
+      return (
+        <div className="flex justify-center items-center" title="Completed">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      );
+    } else if (status === 'PROCESSED') {
+>>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
       return (
         <div className="flex justify-center items-center" title="Processed">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -160,11 +178,20 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
   
   return (
     <div className="w-full max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-500">
-          Inbox
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Showing {totalEmails} messages.</p>
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-500">
+            Inbox
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Showing {totalEmails} messages.</p>
+        </div>
+        <button
+          onClick={onRefresh}
+          className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+          aria-label="Refresh emails"
+        >
+          Refresh
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left table-fixed">

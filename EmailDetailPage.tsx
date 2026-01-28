@@ -6,6 +6,7 @@ interface EmailDetailPageProps {
   onBack: () => void;
   onClassify: (emailId: string, classification: Classification) => void;
   onExtractData: (emailId: string, data: ExtractedData) => void;
+  onRefresh: () => void; // Added onRefresh prop
 }
 
 const classificationOptionsMap: Record<Email['businessProcess'], Classification[]> = {
@@ -81,7 +82,7 @@ const FormField: React.FC<{
 );
 
 
-const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClassify, onExtractData }) => {
+const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClassify, onExtractData, onRefresh }) => {
   const [isClassifying, setIsClassifying] = useState(email.classification === 'Unclassified');
   const [formData, setFormData] = useState<Partial<ExtractedData>>({});
   const classificationOptions = classificationOptionsMap[email.businessProcess] || classificationOptionsMap.other;
@@ -100,13 +101,23 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
                 setFormData({ type: 'booking amendment', bookingNumber: '', updatedDetails: '' });
                 break;
             case 'booking cancellation':
+<<<<<<< HEAD
                 setFormData({ type: 'booking cancellation', bookingNumber: '', cancellationReason: '', dateOfChange: '' });
+=======
+                setFormData({ type: 'booking cancellation', bookingNumber: '', cancellationReason: '', dateOfChange: '', });
+>>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
                 break;
             case 'manual move request':
                 setFormData({ type: 'manual move request', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
                 break;
             case 'dispute':
                 setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
+<<<<<<< HEAD
+=======
+                break;
+            case 'dispute':
+                setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
+>>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
                 break;
             default:
                 setFormData({});
@@ -204,14 +215,23 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
             Date: <span className="font-medium text-gray-700 dark:text-gray-200">{email.date}</span>
           </p>
         </div>
-        <button
-          onClick={onBack}
-          className="flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 transition-colors duration-200 flex items-center"
-          aria-label="Back to Inbox"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-          Back
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onRefresh}
+            className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+            aria-label="Refresh email details"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={onBack}
+            className="flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 transition-colors duration-200 flex items-center"
+            aria-label="Back to Inbox"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back
+          </button>
+        </div>
       </div>
 
       {/* Main content area */}
