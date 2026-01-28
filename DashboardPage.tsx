@@ -15,7 +15,8 @@ const classificationColors: Record<Classification, string> = {
     'equipment substitution request': 'bg-teal-500',
     'empty container pickup request': 'bg-orange-500',
     'equipment interchange request': 'bg-cyan-500',
-    'manual move request': 'bg-lime-500', // Added new classification color
+    'manual move request': 'bg-lime-500',
+    'dispute': 'bg-fuchsia-500',
     'other': 'bg-gray-500'
 };
 
@@ -119,7 +120,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ emails }) => {
     // Data Extraction Stats
     const relevantEmailsForExtraction = emails.filter(e =>
         ['booking request', 'booking amendment', 'booking cancellation', 'equipment release request', 'special equipment request',
-  'equipment substitution request', 'empty container pickup request', 'equipment interchange request', 'manual move request'].includes(e.classification) // Added new classification
+  'equipment substitution request', 'empty container pickup request', 'equipment interchange request', 'manual move request', 'dispute'].includes(e.classification) // Added new classification
     );
 
     const relevantCount = relevantEmailsForExtraction.length;

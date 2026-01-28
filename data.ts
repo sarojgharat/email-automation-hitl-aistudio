@@ -9,6 +9,7 @@ export type Classification =
   | 'empty container pickup request'
   | 'equipment interchange request'
   | 'manual move request'
+  | 'dispute'
   | 'other'
   | 'unclassified';
 
@@ -43,11 +44,18 @@ export interface ManualMoveRequestData {
   itemDescription: string;
 }
 
+export interface InvoiceDisputeData {
+  type: 'dispute';
+  invoiceNumber: string;
+  disputeText: string;
+}
+
 export type ExtractedData =
   | BookingCreationData
   | BookingAmendmentData
   | BookingCancellationData
-  | ManualMoveRequestData;
+  | ManualMoveRequestData
+  | InvoiceDisputeData;
 
 export interface Email {
   id: string;
@@ -56,7 +64,7 @@ export interface Email {
   date: string;
   body: string;
   classification: Classification;
-  businessProcess: 'booking' | 'equipment' | 'other';
+  businessProcess: 'booking' | 'equipment' | 'invoicing' |'other';
   extractedData?: ExtractedData;
   automationStatus: string;
   processingStatus: string;

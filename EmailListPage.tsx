@@ -27,6 +27,8 @@ const getClassificationStyles = (classification: Classification): string => {
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
     case 'manual move request': // Added new classification style
       return 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-300';
+    case 'dispute': // Added new classification style
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'; 
     case 'other':
       return 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200';
     case 'unclassified':
@@ -67,6 +69,7 @@ const classificationOptions: (Classification | 'All')[] = [
   'booking amendment',
   'booking cancellation',
   'manual move request', // Added new classification to options
+  'dispute',
   'other',
   'unclassified',
 ];
@@ -90,7 +93,7 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
   onFilterChange,
 }) => {
   const renderExtractionStatus = (email: Email) => {
-    const isApplicable = ['booking request', 'booking amendment', 'booking cancellation', 'manual move request'].includes(email.classification); // Added new classification
+    const isApplicable = ['unclassified', 'booking request', 'booking amendment', 'booking cancellation', 'manual move request', 'dispute'].includes(email.classification); // Added new classification
 
     if (email.extractedData) {
         return (
@@ -105,7 +108,7 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
     if (isApplicable) {
         return (
             <div className="flex justify-center items-center" title="Data Not Extracted">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-label="Data not extracted">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-label="Data not extracted">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>

@@ -20,8 +20,8 @@ export interface FilterConfig {
   from: string;
   subject: string;
   classification: Classification | 'All';
-  dataExtracted: 'All' | 'Yes' | 'Pending' | 'N/A' | null;
-  automationStatus: 'All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'PENDING';
+  dataExtracted: 'All' | 'Yes' | 'Pending' | 'N/A';
+  automationStatus: 'All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED';
 }
 
 const App: React.FC = () => {
@@ -37,6 +37,7 @@ const App: React.FC = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [emailsPerPage, setEmailsPerPage] = useState(10);
+  const [totalEmails, setTotalEmails] = useState(0); 
   
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'descending' });
   const [filters, setFilters] = useState<FilterConfig>({
@@ -50,16 +51,19 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchEmails = async () => {
       try {
-        const response = await fetch('/api/emails/');
+        const offset = (currentPage - 1) * emailsPerPage;
+        const limit = emailsPerPage;
+        const response = await fetch(`https://email-db-service-165559087544.europe-west1.run.app/api/emails?limit=${limit}&offset=${offset}`);
         const data = await response.json();
-        setEmails(data);
+        setEmails(data.emails);
+        setTotalEmails(data.total);
       } catch (error) {
         console.error('Failed to fetch emails:', error);
       }
     };
   
     fetchEmails();
-  }, []);
+  }, [currentPage, emailsPerPage]);
 
   // Keep selectedEmail in sync with the main emails list after local state updates
   useEffect(() => {
@@ -198,21 +202,18 @@ const App: React.FC = () => {
 
     switch (activePage) {
       case 'dashboard':
-        return <DashboardPage emails={emails} />;
+        return <DashboardPage emails={emails} />;// here emails are all the fetched emails from the API
       case 'inbox': {
-        const lastEmailIndex = currentPage * emailsPerPage;
-        const firstEmailIndex = lastEmailIndex - emailsPerPage;
-        const currentEmails = processedEmails.slice(firstEmailIndex, lastEmailIndex);
-        const totalPages = Math.ceil(processedEmails.length / emailsPerPage);
+        const totalPages = Math.ceil(totalEmails / emailsPerPage);
 
         return (
           <EmailListPage 
-            emails={currentEmails} 
+            emails={processedEmails} 
             onSelectEmail={handleSelectEmail}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalEmails={processedEmails.length}
+            totalEmails={totalEmails}
             emailsPerPage={emailsPerPage}
             onEmailsPerPageChange={handleEmailsPerPageChange}
             sortConfig={sortConfig}
@@ -223,7 +224,7 @@ const App: React.FC = () => {
         );
       }
       default:
-        return <DashboardPage emails={emails} />;
+        return <DashboardPage emails={emails} />;// here emails are all the fetched emails from the API
     }
   };
 
@@ -233,7 +234,7 @@ const App: React.FC = () => {
       className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
         activePage === page
           ? 'bg-white text-blue-600 dark:bg-white dark:text-blue-900 shadow-md'
-          : 'text-blue-100 hover:bg-blue-500 dark:text-blue-200 dark:hover:bg-blue-800'
+          : 'text-blue-100 hover:bg-blue-500 dark:text-blue-800 dark:hover:bg-blue-800'
       }`}
       aria-current={activePage === page ? 'page' : undefined}
     >

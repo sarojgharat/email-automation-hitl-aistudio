@@ -24,6 +24,10 @@ const classificationOptionsMap: Record<Email['businessProcess'], Classification[
     'manual move request',
     'other',
   ],
+  invoicing: [
+    'dispute',
+    'other',
+  ],
   other: ['other'],
 };
 
@@ -101,6 +105,9 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
             case 'manual move request':
                 setFormData({ type: 'manual move request', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
                 break;
+            case 'dispute':
+                setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
+                break;
             default:
                 setFormData({});
         }
@@ -117,7 +124,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
     };
 
     try {
-        const response = await fetch(`http://localhost:8002/api/emails/${email.id}`, {
+        const response = await fetch(`http://localhost:8005/api/emails/${email.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -158,7 +165,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
       };
 
       try {
-        const response = await fetch(`http://localhost:8002/api/emails/${email.id}`, {
+        const response = await fetch(`http://localhost:8005/api/emails/${email.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -250,6 +257,14 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Automation Status Section */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Automation Status</h2>
+            <p className="text-gray-700 dark:text-gray-300">
+              Status: <span className="font-bold px-2 py-1 bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 rounded-md text-sm">{email.automationStatus}</span>
+            </p>
           </div>
 
           {/* Extracted Data Display Section */}
