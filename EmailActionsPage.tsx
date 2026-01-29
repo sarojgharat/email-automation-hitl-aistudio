@@ -14,6 +14,7 @@ const EmailActionsPage: React.FC<EmailActionsPageProps> = ({ onActionComplete })
         console.log(`Ingesting emails for business process: ${selectedBusinessProcess}`);
         try {
             const response = await fetch('https://email-ingestor-service-307509283037.us-central1.run.app/process-emails', {
+                
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
