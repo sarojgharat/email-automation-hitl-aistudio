@@ -45,7 +45,7 @@ const EmailActionsPage: React.FC<EmailActionsPageProps> = ({ onActionComplete })
     const handleProcessEmails = async () => {
         console.log('Processing emails');
         try {
-            const response = await fetch('https://email-processor-service-307509283037.us-central1.run.app/process-emails', {
+            const response = await fetch('https://email-processor-service-165559087544.europe-west1.run.app/process-emails', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
