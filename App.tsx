@@ -53,7 +53,7 @@ const App: React.FC = () => {
     try {
       const offset = (currentPage - 1) * emailsPerPage;
       const limit = emailsPerPage;
-      const response = await fetch(`https://email-db-service-307509283037.us-central1.run.app/api/emails?limit=${limit}&offset=${offset}`);
+      const response = await fetch(`https://email-db-service-165559087544.europe-west1.run.app/api/emails?limit=${limit}&offset=${offset}`);
       const data = await response.json();
       setEmails(data); 
       setTotalEmails(data.length); 
