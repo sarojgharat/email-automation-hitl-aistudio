@@ -63,26 +63,8 @@ const App: React.FC = () => {
   }, [currentPage, emailsPerPage]);
 
   useEffect(() => {
-<<<<<<< HEAD
-    const fetchEmails = async () => {
-      try {
-        const offset = (currentPage - 1) * emailsPerPage;
-        const limit = emailsPerPage;
-        const response = await fetch(`https://email-db-service-165559087544.europe-west1.run.app/api/emails?limit=${limit}&offset=${offset}`);
-        const data = await response.json();
-        setEmails(data.emails);
-        setTotalEmails(data.total);
-      } catch (error) {
-        console.error('Failed to fetch emails:', error);
-      }
-    };
-  
-    fetchEmails();
-  }, [currentPage, emailsPerPage]);
-=======
     fetchEmails();
   }, [fetchEmails]);
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 
   // Keep selectedEmail in sync with the main emails list after local state updates
   useEffect(() => {
@@ -226,11 +208,7 @@ const App: React.FC = () => {
 
     switch (activePage) {
       case 'dashboard':
-<<<<<<< HEAD
-        return <DashboardPage emails={emails} />;// here emails are all the fetched emails from the API
-=======
         return <DashboardPage emails={emails} onRefresh={fetchEmails} />;
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
       case 'inbox': {
         const totalPages = Math.ceil(totalEmails / emailsPerPage);
 
@@ -255,11 +233,7 @@ const App: React.FC = () => {
       case 'emailActions':
         return <EmailActionsPage onActionComplete={handleActionComplete} />;
       default:
-<<<<<<< HEAD
-        return <DashboardPage emails={emails} />;// here emails are all the fetched emails from the API
-=======
         return <DashboardPage emails={emails} onRefresh={fetchEmails} />;
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
     }
   };
 

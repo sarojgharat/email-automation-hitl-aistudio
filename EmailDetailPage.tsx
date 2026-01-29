@@ -101,23 +101,16 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ email, onBack, onClas
                 setFormData({ type: 'booking amendment', bookingNumber: '', updatedDetails: '' });
                 break;
             case 'booking cancellation':
-<<<<<<< HEAD
-                setFormData({ type: 'booking cancellation', bookingNumber: '', cancellationReason: '', dateOfChange: '' });
-=======
                 setFormData({ type: 'booking cancellation', bookingNumber: '', cancellationReason: '', dateOfChange: '', });
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
                 break;
             case 'manual move request':
                 setFormData({ type: 'manual move request', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
                 break;
             case 'dispute':
                 setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
-<<<<<<< HEAD
-=======
                 break;
             case 'dispute':
                 setFormData({ type: 'dispute', moveType: '', sourceLocation: '', destinationLocation: '', moveDate: '', itemDescription: '' });
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
                 break;
             default:
                 setFormData({});

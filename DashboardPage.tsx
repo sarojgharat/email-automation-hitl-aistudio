@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React from 'react';
-=======
 import React, { useState, useEffect, useMemo } from 'react';
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 import { Email, Classification } from './data';
 
 interface DashboardPageProps {

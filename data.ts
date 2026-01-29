@@ -44,25 +44,11 @@ export interface ManualMoveRequestData {
   itemDescription: string;
 }
 
-<<<<<<< HEAD
-export interface InvoiceDisputeData {
-  type: 'dispute';
-  invoiceNumber: string;
-  disputeText: string;
-}
-
-=======
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 export type ExtractedData =
   | BookingCreationData
   | BookingAmendmentData
   | BookingCancellationData
-<<<<<<< HEAD
-  | ManualMoveRequestData
-  | InvoiceDisputeData;
-=======
   | ManualMoveRequestData;
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 
 export interface Email {
   id: string;
@@ -71,11 +57,7 @@ export interface Email {
   date: string;
   body: string;
   classification: Classification;
-<<<<<<< HEAD
-  businessProcess: 'booking' | 'equipment' | 'invoicing' |'other';
-=======
   businessProcess: 'booking' | 'equipment' | 'invoicing'| 'other';
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
   extractedData?: ExtractedData;
   automationStatus: string;
   processingStatus: string;

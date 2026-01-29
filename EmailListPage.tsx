@@ -76,11 +76,7 @@ const classificationOptions: (Classification | 'All')[] = [
 ];
 
 const dataExtractedOptions: ('All' | 'Yes' | 'Pending' | 'N/A')[] = ['All', 'Yes', 'Pending', 'N/A'];
-<<<<<<< HEAD
-const automationStatusOptions: ('All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'NOT_TRIGGERED')[] = ['All', 'TRIGGERED', 'PROCESSED', 'FAILED', 'NOT_TRIGGERED'];
-=======
 const automationStatusOptions: ('All' | 'TRIGGERED' | 'PROCESSED' | 'FAILED' | 'COMPLETED' | 'NOT_TRIGGERED')[] = ['All', 'TRIGGERED', 'PROCESSED', 'FAILED', 'COMPLETED', 'NOT_TRIGGERED'];
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
 
 
 const EmailListPage: React.FC<EmailListPageProps> = ({
@@ -129,9 +125,6 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
   };
 
   const renderAutomationStatus = (status: string) => {
-<<<<<<< HEAD
-    if (status === 'PROCESSED') {
-=======
     if (status === 'COMPLETED') {
       return (
         <div className="flex justify-center items-center" title="Completed">
@@ -141,7 +134,6 @@ const EmailListPage: React.FC<EmailListPageProps> = ({
         </div>
       );
     } else if (status === 'PROCESSED') {
->>>>>>> 42ed698f3f6596aa59d2af4b25ba2cf65107809c
       return (
         <div className="flex justify-center items-center" title="Processed">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
